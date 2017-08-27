@@ -1,0 +1,305 @@
+#+PROPERTY: header-args :tangle yes
+
+* Setup 
+
+I'm using Quicklisp to install and manage lisp packages. In addition to loading
+quicklisp, I also install the quicklisp-slime-helper package as I like to tweak
+stumpwm from within emacs using slime.
+
+The file generated using org babel will be a stumpwm configuration file. I do a
+symbolic link from this file to =~/.stumpwmrc~
+
+#+BEGIN_SRC lisp
+  (in-package :stumpwm)
+
+  ;; (setf *debug-level* 1)
+
+  ;; (run-shell-command "rm ~/.stumpwm.d/debug-output.txt")
+  (redirect-all-output (data-dir-file "debug-output" "txt"))
+  (run-shell-command "xsetroot -display :0 -solid '#002b36'")
+
+  ;; (asdf:oos 'asdf:load-op 'swank)
+  (require :swank)
+  ;; (swank-loader:init)
+  (swank:create-server :dont-close t
+                       :port 4004
+                       :style swank:*communication-style*)
+
+  (set-module-dir "~/.stumpwm.d/modules")
+  ;; (mapcar #'load-module '("ttf-fonts"
+  ;;                         "urgentwindows"
+  ;;                         "notify"
+  ;;                         "amixer"))
+
+  (set-prefix-key (kbd "s-s"))
+
+#+END_SRC
+
+* Speech Support
+
+I use emacspeak to make stumpwm a talking desktop window manager. This is based
+on the work of T.V. Raman, author of Emacspeak. 
+
+
+I use Emacspeak, which includes a lisp file to add speech to stumpwm. The
+following block provides basic setup etc. 
+
+#+BEGIN_SRC lisp
+  ;;; (setq *deny-raise-request* t)
+
+  ;; (defvar *emacspeak-dir* "/home/tim/git/emacspeak/trunk"
+  ;;   "Root directory of Emacspeak installation.")
+
+  ;; (defvar *tts-window-icon*
+  ;;   (concatenate 'string
+  ;;                *emacspeak-dir*
+  ;;                "/"
+  ;;                "sounds/pan-chimes/window-resize.wav")
+  ;;   "Window change icon.")
+
+  ;; (defvar *tts-off-icon*
+  ;;   (concatenate 'string
+  ;;                *emacspeak-dir*
+  ;;                "/"
+  ;;                "sounds/pan-chimes/off.wav")
+  ;;   "Off icon.")
+
+  ;; (defvar *tts-on-icon*
+  ;;   (concatenate 'string
+  ;;                *emacspeak-dir*
+  ;;                "/"
+  ;;                "sounds/pan-chimes/on.wav")
+  ;;   "On icon.")
+
+
+
+
+  ;; (load
+  ;;  (concatenate 'string
+  ;;               *emacspeak-dir*
+  ;;               "/"
+  ;;               "stumpwm/tts.lisp"))
+
+  ;; (setq *tts-engine* *tts-outloud*)
+
+  ;; (tts-say "TTS: Ready to talk! ")
+
+  ;; (defun speak-window-change (new old)
+  ;;   "Speak current window  information."
+  ;;   (declare (special *tts-window-icon*))
+  ;;   (when new
+  ;;     (tts-serve-icon *tts-window-icon*)
+  ;;     (tts-speak (window-name new))))
+
+  ;; (defun speak-this-window (window)
+  ;;   "Speak this window  information."
+  ;;   (tts-speak (window-name window)))
+
+  ;; (defun speak-current-window ()
+  ;;   "Speak current window  information."
+  ;;   (tts-speak (window-name (current-window))))
+
+  ;; (defvar *tts-speak-messages* t
+  ;;   "Switch messages on and off.")
+
+  ;; (defcommand  tts-toggle-speak-messages ()
+  ;;   ()
+  ;;   "Toggle state of speak messages switch."
+  ;;   (declare (special *tts-speak-messages* *tts-on-icon*
+  ;;                     *tts-off-icon*))
+  ;;   (setq *tts-speak-messages* (not *tts-speak-messages*))
+  ;;   (tts-serve-icon
+  ;;    (if *tts-speak-messages*
+  ;;        *tts-on-icon*
+  ;;        *tts-off-icon*)))
+
+  ;;  (define-key *root-map* (kbd "t") "tts-toggle-speak-messages")
+
+  ;; (defun speak-messages (&rest messages)
+  ;;   "Speak messages, a list of lines."
+  ;;   (declare (special *tts-speak-messages*))
+  ;;   (when *tts-speak-messages*
+  ;;     (tts-speak
+  ;;     (apply
+  ;;     #'concatenate  'string
+  ;;     (mapcar #'stumpwm::uncolorify messages)))))
+
+  ;; ;;;  (setq  *focus-window-hook* (list 'speak-window-change))
+  ;; (add-hook *focus-window-hook* 'speak-window-change)
+
+  ;; ;;; (setq *new-window-hook* (list 'speak-this-window))
+  ;; (add-hook *new-window-hook* 'speak-this-window)
+
+  ;; ;;;(setq *message-hook* (list 'speak-messages))
+  ;; (add-hook *message-hook* 'speak-messages)
+
+#+END_SRC
+
+* Commands
+
+Lock Screen 
+
+#+BEGIN_SRC lisp
+  (defparameter *my-lock-command*
+    "exec ~/bin/xlock ")
+
+  (defcommand lock-screen ()
+    ()
+    "Lock my screen."
+    (eval-command *my-lock-command*))
+
+#+END_SRC
+
+Web Browser
+
+#+BEGIN_SRC lisp
+  (defcommand chrome ()
+    ()
+    "Start  or switch to Chrome."
+    (run-or-raise "/usr/bin/google-chrome" '(:class "chrome" :title "Chrome")))
+
+#+END_SRC
+
+Safe quit command so that I can bind a key to quit the WM safely i.e. with all
+windows closed. 
+
+#+BEGIN_SRC lisp
+  (defun count-windows ()
+    (let ((win-count 0))
+      (dolist (group (screen-groups (current-screen)))
+            (setq win-count (+ (length (group-windows group)) win-count)))
+      win-count))
+
+  (defcommand safe-quit ()
+    ()
+    "A (slightly) safer quit command"
+    (let ((win-count (count-windows)))
+        (if (= 0 win-count)
+            (run-commands "quit")
+            (message (format nil "You have ~d ~a open"
+                             win-count (if (= win-count 1)
+                                           "window"
+                                           "windows"))))))
+
+#+END_SRC
+
+Stumpish support commands. 
+
+#+BEGIN_SRC lisp
+  ;; these commands are mainly intended to be called by external
+  ;; commands through the use of stumpish
+  (defcommand stumpwm-input (prompt) ((:string "prompt: "))
+    "prompts the user for one line of input."
+    (read-one-line (current-screen) prompt))
+
+  (defcommand stumpwm-password (prompt) ((:string "prompt: "))
+    "prompts the user for a password."
+    (read-one-line (current-screen) prompt :password t))
+
+#+END_SRC
+
+* Look & Feel
+
+Set some window colours
+
+#+BEGIN_SRC lisp
+  (set-fg-color "#ffff00")
+  (set-bg-color "#21252b")
+  (set-border-color "#7ff00f")
+  (set-win-bg-color "#21252b")
+  (set-focus-color "#61afef")
+  (set-unfocus-color "#21252b")
+
+#+END_SRC
+
+Set some window decoration stuff
+
+#+BEGIN_SRC lisp
+  (setf *maxsize-border-width* 3)
+  (setf *transient-border-width* 1)
+  (setf *normal-border-width* 2)
+  (set-msg-border-width 1)
+  (setf *window-border-style* :thin)
+
+  (setf *message-window-padding* 14)
+
+#+END_SRC
+
+Set window gravity 
+
+#+BEGIN_SRC lisp
+  (setf *message-window-gravity* :center)
+  (setf *input-window-gravity*   :bottom)
+
+  (set-maxsize-gravity :center)
+  (set-transient-gravity :top)
+
+#+END_SRC
+
+Set the font
+
+#+BEGIN_SRC lisp
+  (set-font "-*-fixed-medium-r-*-*-*-140-100-100-*-*-iso8859-*")
+
+
+  ;; (xft:cache-fonts)
+  ;; (set-font (make-instance 'xft:font
+  ;;                          :family "Ricty Diminished"
+  ;;                          :subfamily "Regular"
+  ;;                          :size 17
+  ;;                          :antialiased t))
+
+#+END_SRC
+
+Set the mode-line 
+
+#+BEGIN_SRC lisp
+  (setf *mode-line-background-color* "#002b36")
+  (setf *mode-line-foreground-color* "#859900")
+  (setf *mode-line-border-color* "#28394c")
+
+  (setf *mode-line-position* :bottom)
+
+  (toggle-mode-line (current-screen) (current-head))
+
+#+END_SRC
+
+* Groups
+
+Define some groups as virtual desktops
+
+#+BEGIN_SRC lisp
+  (run-commands "gnewbg Emacs" "gnewbg Terminal" "gnewbg Entertainment"
+                "gnewbg Status")
+
+  (clear-window-placement-rules)
+
+  (define-frame-preference "Default"
+      (0 t t :CLASS "Google-chrome" :INSTANCE "google-chrome" :ROLE "browser"))
+
+  (define-frame-preference "Emacs"
+      (0 t t :CLASS "Emacs" :INSTANCE "emacs"))
+
+  (define-frame-preference "Terminal"
+      (2 t nil :CLASS "Xterm" :INSTANCE "xterm"))
+
+#+END_SRC
+
+* Key Bindings 
+
+#+BEGIN_SRC lisp
+  (define-key *top-map* (kbd "s-Up") "gprev")
+  (define-key *top-map* (kbd "s-Down") "gnext")
+  (define-key *top-map* (kbd "s-q") "safe-quit")
+  (undefine-key *root-map* (kbd "v"))
+  (define-key *root-map* (kbd "v") "vsplit")
+  (define-key *root-map* (kbd "D") "lock-screen")
+  (define-key *root-map* (kbd "s-g") "chrome")
+
+  ;; (define-key *root-map* (kbd "s-n") "notify-server-toggle")
+  ;; (define-key *top-map* (kbd "s-r") "raise-urgent")
+  ;; (define-key *top-map* (kbd "XF86AudioLowerVolume") "amixer-Front-1-")
+  ;; (define-key *top-map* (kbd "XF86AudioRaiseVolume") "amixer-Front-1+")
+  ;; (define-key *top-map* (kbd "XF86AudioMute") "amixer-Master-toggle pulse")
+
+#+END_SRC
