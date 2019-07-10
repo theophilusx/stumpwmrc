@@ -165,6 +165,13 @@ following block provides basic setup etc.
 
 * Menu
 
+Define parameter variables
+
+#+begin_src lisp
+  (defparameter *app-menu*)
+  (defparameter *command-menu*)
+#+end_src
+
 Define program menu
 
 #+begin_src lisp
