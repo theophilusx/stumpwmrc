@@ -1,22 +1,23 @@
 #+PROPERTY: header-args :tangle yes
 
-* Setup 
+* Setup
 
 I'm using Quicklisp to install and manage lisp packages. In addition to loading
 quicklisp, I also install the quicklisp-slime-helper package as I like to tweak
 stumpwm from within emacs using slime.
 
 The file generated using org babel will be a stumpwm configuration file. I do a
-symbolic link from this file to =~/.stumpwmrc~
+symbolic link from this file to ~/.stumpwmrc~
 
 #+BEGIN_SRC lisp
   (in-package :stumpwm)
 
   ;; (setf *debug-level* 1)
 
-  ;; (run-shell-command "rm ~/.stumpwm.d/debug-output.txt")
+  (run-shell-command "cp /dev/null > ~/.stumpwm.d/debug-output.txt")
   (redirect-all-output (data-dir-file "debug-output" "txt"))
-  (run-shell-command "xsetroot -display :0 -solid '#002b36'")
+  (run-shell-command "xsetroot -display $DISPLAY -solid '#002b36'")
+  (run-shell-command "xsetroot -cursor_name left_ptr")
 
   ;; (asdf:oos 'asdf:load-op 'swank)
   (require :swank)
@@ -26,14 +27,41 @@ symbolic link from this file to =~/.stumpwmrc~
                        :style swank:*communication-style*)
 
   (set-module-dir "~/.stumpwm.d/modules")
-  ;; (mapcar #'load-module '("ttf-fonts"
-  ;;                         "urgentwindows"
-  ;;                         "notify"
-  ;;                         "amixer"))
-
   (set-prefix-key (kbd "s-s"))
 
 #+END_SRC
+
+* Modules
+** ttf
+
+Set the font. Note there have been reports of memory leaks with the ttf module,
+so beware. 
+
+#+BEGIN_SRC lisp
+  ;; (set-font "-*-fixed-medium-r-*-*-*-180-100-100-*-*-iso8859-*")
+  (load-module "ttf-font")
+  (xft:cache-fonts)
+  (set-font (make-instance 'xft:font
+                           :family "DejaVu Sans Mono"
+                           :subfamily "Book"
+                           :size 22
+                           :antialiased t))
+#+END_SRC
+
+** Notify
+
+To define a notification handler, do something like
+
+#+begin_example
+  (defun notification-handler (app icon summary body)
+    "Does things with incoming notifications"
+    ...)
+#+end_example
+
+#+begin_src lisp
+  (load-module "notify")
+  (notify:notify-server-toggle)
+#+end_src
 
 * Speech Support
 
@@ -135,7 +163,63 @@ following block provides basic setup etc.
 
 #+END_SRC
 
+* Menu
+
+Define program menu
+
+#+begin_src lisp
+  (defcommand program-menu () ()
+    (labels ((pick (options)
+               (let ((selection (stumpwm::select-from-menu (current-screen) options "")))
+                 (cond
+                   ((null selection)
+                    (throw 'stumpwm::error "Abort."))
+                   ((stringp (second selection))
+                    (second selection))
+                   (t
+                    (pick (cdr selection)))))))
+      (let ((choice (pick *app-menu*)))
+        (run-shell-command choice))))
+#+end_src
+
+Define command menu
+
+#+begin_src lisp
+  (defcommand command-menu () ()
+      (labels ((pick (options)
+                 (let ((selection (stumpwm::select-from-menu (current-screen) options "")))
+                   (cond
+                     ((null selection)
+                      (throw 'stumpwm::error "Abort."))
+                     ((stringp (second selection))
+                      (second selection))
+                     (t
+                      (pick (cdr selection)))))))
+        (let ((choice (pick *command-menu*)))
+          (run-commands choice))))
+#+end_src
+
+Load menus
+
+#+begin_src lisp
+  (load "~/.stumpwm.d/app.menu")
+  (load "~/.stumpwm.d/command.menu")
+#+end_src
+
 * Commands
+** send-to-group
+
+#+begin_src lisp
+  (defcommand send-to-group (group)
+      ((:string "Group Name: "))
+    "Send current frame to specified group"
+    (let ((cmd (format nil "gmove-and-follow ~a" group)))
+      (run-commands cmd)))
+
+  (define-key *root-map* (kbd "C-M-g") "send-to-group")
+#+end_src
+
+** Lock Screen
 
 Lock Screen 
 
@@ -150,15 +234,121 @@ Lock Screen
 
 #+END_SRC
 
+** Chrome
+
 Web Browser
 
 #+BEGIN_SRC lisp
   (defcommand chrome ()
     ()
     "Start  or switch to Chrome."
-    (run-or-raise "/usr/bin/google-chrome" '(:class "chrome" :title "Chrome")))
+    (run-or-raise "/usr/bin/google-chrome"
+                  '(:class "Google-chrome" :instance "google-chrome")))
 
+  (define-key *root-map* (kbd "s-g") "chrome")
 #+END_SRC
+
+** Spotify
+
+Spotify Command
+
+#+begin_src lisp
+  (defcommand spotify ()
+      ()
+    "Start  or switch to spotify."
+    (run-or-raise "/usr/bin/spotify" '(:class "Spotify" :instance "spotify")))
+
+#+end_src
+
+** gPodder
+
+gPodder
+
+#+begin_src lisp
+  (defcommand gpodder ()
+      ()
+    "Start gPodder"
+    (run-or-raise "/usr/bin/gpodder" '(:class "Gpodder" :instance "gpodder")))
+#+end_src
+
+** Rhythmbox
+
+Rhythmbox
+
+#+begin_src lisp
+  (defcommand rhythmbox ()
+      ()
+    "Start Rhythmbox"
+    (run-or-raise "/usr/bin/rhythmbox" '(:class "Rhythmbox" :instance "rhythmbox")))
+#+end_src
+
+** Volume Control
+
+Volume Control
+
+#+begin_src lisp
+  (defcommand pavuctl ()
+      ()
+    "Start PA volume control"
+    (run-or-raise "/usr/bin/pavucontrol"
+                  '(:class "Pavucontrol" :instance "pavucontrol"
+                    :title "Pulse Audio Volumes")))
+#+end_src
+
+** htop
+
+htop command
+
+#+begin_src lisp
+  (defcommand htop ()
+    ()
+    "Run htop inside an exterm"
+    (run-or-raise "/usr/bin/xterm -e htop"
+                  '(:class "Xterm" :instance "xterm" :title "Htop")))
+#+end_src
+
+** xload
+
+xload
+
+#+begin_src lisp
+(defcommand xload ()
+()
+"Run xload"
+(run-or-raise "/usr/bin/xload" '(:class "XLoad" :instance "xload" :title "xload")))
+#+end_src
+
+** Mail
+
+Mail
+
+#+begin_src lisp :tangle no
+  (defcommand my-mail ()
+      ()
+    "Open mail client"
+    (run-or-raise "emacsclient -e '(mu4e)'"
+                  '(:title "...mu4e-main*") nil t))
+#+end_src
+
+** Dump Desktop
+
+Dump the desktop for later restore
+
+#+begin_src lisp
+  (defcommand save-desktop ()
+      ()
+    "Save the current desktop to file"
+    (dump-desktop-to-file "~/.stumpwm.d/desktop.dump"))
+
+  (define-key *root-map* (kbd "s-d") "save-desktop")
+
+  (defcommand restore-my-desktop ()
+      ()
+    "Restore frame & window config from file"
+    (restore-from-file "~/.stumpwm.d/desktop.dump"))
+#+end_src
+
+** Safe quit
 
 Safe quit command so that I can bind a key to quit the WM safely i.e. with all
 windows closed. 
@@ -181,7 +371,10 @@ windows closed.
                                            "window"
                                            "windows"))))))
 
+  (define-key *top-map* (kbd "s-q") "safe-quit")
 #+END_SRC
+
+** Stumpish
 
 Stumpish support commands. 
 
@@ -199,6 +392,15 @@ Stumpish support commands.
 #+END_SRC
 
 * Look & Feel
+** Timeout
+
+Set timeout. I like a longer timeout to give me a chance to see it
+
+#+begin_src lisp
+  (setf *timeout-wait* 15)
+#+end_src
+
+** Colours
 
 Set some window colours
 
@@ -211,6 +413,8 @@ Set some window colours
   (set-unfocus-color "#21252b")
 
 #+END_SRC
+
+** Decoration 
 
 Set some window decoration stuff
 
@@ -225,31 +429,26 @@ Set some window decoration stuff
 
 #+END_SRC
 
+** Mouse
+
+Set mouse focus
+
+#+begin_src lisp
+  (setf *mouse-focus-policy* :click) ;; :click, :ignore, :sloppy
+#+end_src
+
+** Window Gravity
+
 Set window gravity 
 
 #+BEGIN_SRC lisp
   (setf *message-window-gravity* :center)
-  (setf *input-window-gravity*   :bottom)
-
+  (setf *input-window-gravity*   :center)
   (set-maxsize-gravity :center)
   (set-transient-gravity :top)
-
 #+END_SRC
 
-Set the font
-
-#+BEGIN_SRC lisp
-  (set-font "-*-fixed-medium-r-*-*-*-140-100-100-*-*-iso8859-*")
-
-
-  ;; (xft:cache-fonts)
-  ;; (set-font (make-instance 'xft:font
-  ;;                          :family "Ricty Diminished"
-  ;;                          :subfamily "Regular"
-  ;;                          :size 17
-  ;;                          :antialiased t))
-
-#+END_SRC
+** Modeline
 
 Set the mode-line 
 
@@ -258,7 +457,7 @@ Set the mode-line
   (setf *mode-line-foreground-color* "#859900")
   (setf *mode-line-border-color* "#28394c")
 
-  (setf *mode-line-position* :bottom)
+  (setf *mode-line-position* :top)
 
   (toggle-mode-line (current-screen) (current-head))
 
@@ -266,35 +465,73 @@ Set the mode-line
 
 * Groups
 
-Define some groups as virtual desktops
+Define some groups as virtual desktops. First, get rid of any existing placement
+rules.
 
-#+BEGIN_SRC lisp
-  (run-commands "gnewbg Emacs" "gnewbg Terminal" "gnewbg Entertainment"
-                "gnewbg Status")
-
+#+begin_src lisp
   (clear-window-placement-rules)
+#+end_src
 
-  (define-frame-preference "Default"
-      (0 t t :CLASS "Google-chrome" :INSTANCE "google-chrome" :ROLE "browser"))
+** Web
 
-  (define-frame-preference "Emacs"
-      (0 t t :CLASS "Emacs" :INSTANCE "emacs"))
+#+begin_src lisp
+  (run-commands "gnewbg Web")
 
-  (define-frame-preference "Terminal"
-      (2 t nil :CLASS "Xterm" :INSTANCE "xterm"))
+  (define-frame-preference "Web"
+    (0 t t :class "Google-chrome" :instance "google-chrome" :role "browser"))
+#+end_src
 
-#+END_SRC
+** Project
 
-* Key Bindings 
+#+begin_src lisp
+  (run-commands "gnewbg Project")
+#+end_src
+
+** Social
+
+#+begin_src lisp
+  (run-commands "gnewbg Social")
+
+  (define-frame-preference "Social"
+    (0 t nil :class "TelegramDesktop" :instance "Telegram" :title "Telegram")
+    (1 t nil :class "Slack" :instance "slack" :role "browser-window"))
+#+end_src
+
+** Entertainment 
+
+#+begin_src lisp
+  (run-commands "gnewbg Entertainment")
+
+  (define-frame-preference "Entertainment"
+    (0 t t :class "Spotify" :instance "spotify")
+    (1 t t :class "Gpodder")
+    (2 t t :class "Rhythmbox"))
+#+end_src
+
+** System
+
+#+begin_src lisp
+  (run-commands "gnewbg System")
+
+  (define-frame-preference "System"
+    (0 t t :class "Pavucontrol")
+    (1 t t :title "htop")
+    (2 t t :class "XLoad" :instance "xload"))
+#+end_src
+
+* Key Bindings
 
 #+BEGIN_SRC lisp
   (define-key *top-map* (kbd "s-Up") "gprev")
   (define-key *top-map* (kbd "s-Down") "gnext")
-  (define-key *top-map* (kbd "s-q") "safe-quit")
-  (undefine-key *root-map* (kbd "v"))
-  (define-key *root-map* (kbd "v") "vsplit")
-  (define-key *root-map* (kbd "D") "lock-screen")
-  (define-key *root-map* (kbd "s-g") "chrome")
+  (define-key *top-map* (kbd "s-Left") "pull-hidden-previous")
+  (define-key *top-map* (kbd "s-Right") "pull-hidden-next")
+  (define-key *top-map* (kbd "s-|") "hsplit")
+  (define-key *top-map* (kbd "s--") "vsplit")
+
+  ;;(define-key *root-map* (kbd "D") "lock-screen")
+  (define-key *root-map* (kbd ".") "program-menu")
+  (define-key *root-map* (kbd ",") "command-menu")
 
   ;; (define-key *root-map* (kbd "s-n") "notify-server-toggle")
   ;; (define-key *top-map* (kbd "s-r") "raise-urgent")
@@ -303,3 +540,10 @@ Define some groups as virtual desktops
   ;; (define-key *top-map* (kbd "XF86AudioMute") "amixer-Master-toggle pulse")
 
 #+END_SRC
+
+* Startup
+  
+#+begin_src lisp
+    (restore-my-desktop)
+#+end_src
+
