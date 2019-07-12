@@ -13,9 +13,10 @@ symbolic link from this file to ~/.stumpwmrc~
   (in-package :stumpwm)
 
   ;; (setf *debug-level* 1)
-
+  (run-shell-command "cp ~/.stumpwm.d/debug-output.txt ~/.stumpwm.d/debug-output.txt.old")
   (run-shell-command "cp /dev/null > ~/.stumpwm.d/debug-output.txt")
   (redirect-all-output (data-dir-file "debug-output" "txt"))
+
   (run-shell-command "xsetroot -display $DISPLAY -solid '#002b36'")
   (run-shell-command "xsetroot -cursor_name left_ptr")
 
@@ -39,7 +40,7 @@ so beware.
 
 #+BEGIN_SRC lisp
   ;; (set-font "-*-fixed-medium-r-*-*-*-180-100-100-*-*-iso8859-*")
-  (load-module "ttf-font")
+  (load-module "ttf-fonts")
   (xft:cache-fonts)
   (set-font (make-instance 'xft:font
                            :family "DejaVu Sans Mono"
@@ -68,98 +69,126 @@ To define a notification handler, do something like
 I use emacspeak to make stumpwm a talking desktop window manager. This is based
 on the work of T.V. Raman, author of Emacspeak. 
 
+** Load TTS lib
 
-I use Emacspeak, which includes a lisp file to add speech to stumpwm. The
-following block provides basic setup etc. 
+#+begin_src lisp
+  (defvar *emacspeak-dir* "/home/tim/git/emacspeak/trunk"
+    "Root directory of Emacspeak installation.")
+
+  (load
+   (concatenate 'string
+                ,*emacspeak-dir*
+                "/"
+                "stumpwm/tts.lisp"))
+
+#+end_src
+
+** Setup
+
+#+begin_src lisp
+  ;;; (setq *deny-raise-request* t)
+  (setf *tts-engine* *tts-outloud*)
+
+#+end_src
+
+** TTS Icons
+
+#+begin_src lisp
+  (defvar *tts-window-icon*
+    (concatenate 'string
+                 ,*emacspeak*
+                 "/"
+                 "sounds/pan-chimes/window-resize.wav")
+    "Window change icon.")
+
+  (defvar *tts-off-icon*
+    (concatenate 'string
+                 ,*emacspeak*
+                 "/"
+                 "sounds/pan-chimes/off.wav")
+    "Off icon.")
+
+  (defvar *tts-on-icon*
+    (concatenate 'string
+                 ,*emacspeak*
+                 "/"
+                 "sounds/pan-chimes/on.wav")
+    "On icon.")
+
+  (defvar *tts-speak-messages* nil
+    "Switch messages on and off.")
+
+#+end_src
+
+** speak-window-change
+
+#+begin_src lisp
+  (defun speak-window-change (new old)
+    "Speak current window  information."
+    (declare (special *tts-window-icon*))
+    (when new
+      (tts-serve-icon *tts-window-icon*)
+      (tts-speak (window-name new))))
+
+  (add-hook *focus-window-hook* 'speak-window-change)
+
+#+end_src
+
+** speak-this-window
+
+#+begin_src lisp
+  (defun speak-this-window (window)
+    "Speak this window  information."
+    (tts-speak (window-name window)))
+
+  (add-hook *new-window-hook* 'speak-this-window)
+
+#+end_src
+
+** speak-current-window
+
+#+begin_src lisp
+  (defun speak-current-window ()
+    "Speak current window  information."
+    (tts-speak (window-name (current-window))))
+
+#+end_src
+
+** tts-toggle-speak-message
+
+#+begin_src lisp
+  (defcommand  tts-toggle-speak-messages ()
+    ()
+    "Toggle state of speak messages switch."
+    (declare (special *tts-speak-messages* *tts-on-icon*
+                      ,*tts-off-icon*))
+    (setq *tts-speak-messages* (not *tts-speak-messages*))
+    (tts-serve-icon
+     (if *tts-speak-messages*
+         ,*tts-on-icon*
+         ,*tts-off-icon*)))
+
+  (define-key *root-map* (kbd "t") "tts-toggle-speak-messages")
+
+#+end_src
+
+** speak-message
+
+#+begin_src lisp
+  (defun speak-messages (&rest messages)
+    "Speak messages, a list of lines."
+    (declare (special *tts-speak-messages*))
+    (when *tts-speak-messages*
+      (tts-speak-list (mapcar #'stumpwm::uncolorify messages))))
+
+  (add-hook *message-hook* 'speak-messages)
+
+#+end_src
+
+** Startup message
 
 #+BEGIN_SRC lisp
-  ;;; (setq *deny-raise-request* t)
-
-  ;; (defvar *emacspeak-dir* "/home/tim/git/emacspeak/trunk"
-  ;;   "Root directory of Emacspeak installation.")
-
-  ;; (defvar *tts-window-icon*
-  ;;   (concatenate 'string
-  ;;                *emacspeak-dir*
-  ;;                "/"
-  ;;                "sounds/pan-chimes/window-resize.wav")
-  ;;   "Window change icon.")
-
-  ;; (defvar *tts-off-icon*
-  ;;   (concatenate 'string
-  ;;                *emacspeak-dir*
-  ;;                "/"
-  ;;                "sounds/pan-chimes/off.wav")
-  ;;   "Off icon.")
-
-  ;; (defvar *tts-on-icon*
-  ;;   (concatenate 'string
-  ;;                *emacspeak-dir*
-  ;;                "/"
-  ;;                "sounds/pan-chimes/on.wav")
-  ;;   "On icon.")
-
-
-
-
-  ;; (load
-  ;;  (concatenate 'string
-  ;;               *emacspeak-dir*
-  ;;               "/"
-  ;;               "stumpwm/tts.lisp"))
-
-  ;; (setq *tts-engine* *tts-outloud*)
-
-  ;; (tts-say "TTS: Ready to talk! ")
-
-  ;; (defun speak-window-change (new old)
-  ;;   "Speak current window  information."
-  ;;   (declare (special *tts-window-icon*))
-  ;;   (when new
-  ;;     (tts-serve-icon *tts-window-icon*)
-  ;;     (tts-speak (window-name new))))
-
-  ;; (defun speak-this-window (window)
-  ;;   "Speak this window  information."
-  ;;   (tts-speak (window-name window)))
-
-  ;; (defun speak-current-window ()
-  ;;   "Speak current window  information."
-  ;;   (tts-speak (window-name (current-window))))
-
-  ;; (defvar *tts-speak-messages* t
-  ;;   "Switch messages on and off.")
-
-  ;; (defcommand  tts-toggle-speak-messages ()
-  ;;   ()
-  ;;   "Toggle state of speak messages switch."
-  ;;   (declare (special *tts-speak-messages* *tts-on-icon*
-  ;;                     *tts-off-icon*))
-  ;;   (setq *tts-speak-messages* (not *tts-speak-messages*))
-  ;;   (tts-serve-icon
-  ;;    (if *tts-speak-messages*
-  ;;        *tts-on-icon*
-  ;;        *tts-off-icon*)))
-
-  ;;  (define-key *root-map* (kbd "t") "tts-toggle-speak-messages")
-
-  ;; (defun speak-messages (&rest messages)
-  ;;   "Speak messages, a list of lines."
-  ;;   (declare (special *tts-speak-messages*))
-  ;;   (when *tts-speak-messages*
-  ;;     (tts-speak
-  ;;     (apply
-  ;;     #'concatenate  'string
-  ;;     (mapcar #'stumpwm::uncolorify messages)))))
-
-  ;; ;;;  (setq  *focus-window-hook* (list 'speak-window-change))
-  ;; (add-hook *focus-window-hook* 'speak-window-change)
-
-  ;; ;;; (setq *new-window-hook* (list 'speak-this-window))
-  ;; (add-hook *new-window-hook* 'speak-this-window)
-
-  ;; ;;;(setq *message-hook* (list 'speak-messages))
-  ;; (add-hook *message-hook* 'speak-messages)
+  (tts-speak "TTS: Ready to talk!")
 
 #+END_SRC
 
@@ -168,8 +197,8 @@ following block provides basic setup etc.
 Define parameter variables
 
 #+begin_src lisp
-  (defparameter *app-menu*)
-  (defparameter *command-menu*)
+  (defparameter *app-menu* nil)
+  (defparameter *command-menu* nil)
 #+end_src
 
 Define program menu
