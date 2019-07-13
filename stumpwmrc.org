@@ -47,6 +47,7 @@ so beware.
                            :subfamily "Book"
                            :size 22
                            :antialiased t))
+
 #+END_SRC
 
 ** Notify
@@ -64,6 +65,15 @@ To define a notification handler, do something like
   (notify:notify-server-toggle)
 #+end_src
 
+** Menu
+
+#+begin_src lisp
+  (load-module "app-menu")
+  (defvar *app-menu* nil)
+  (load "~/.stumpwm.d/app.menu")
+
+#+end_src
+
 * Speech Support
 
 I use emacspeak to make stumpwm a talking desktop window manager. This is based
@@ -72,13 +82,12 @@ on the work of T.V. Raman, author of Emacspeak.
 ** Load TTS lib
 
 #+begin_src lisp
-  (defvar *emacspeak-dir* "/home/tim/git/emacspeak/trunk"
+  (defvar *emacspeak-dir* "/home/tim/git/emacspeak/trunk/"
     "Root directory of Emacspeak installation.")
 
   (load
    (concatenate 'string
                 ,*emacspeak-dir*
-                "/"
                 "stumpwm/tts.lisp"))
 
 #+end_src
@@ -97,21 +106,18 @@ on the work of T.V. Raman, author of Emacspeak.
   (defvar *tts-window-icon*
     (concatenate 'string
                  ,*emacspeak*
-                 "/"
                  "sounds/pan-chimes/window-resize.wav")
     "Window change icon.")
 
   (defvar *tts-off-icon*
     (concatenate 'string
                  ,*emacspeak*
-                 "/"
                  "sounds/pan-chimes/off.wav")
     "Off icon.")
 
   (defvar *tts-on-icon*
     (concatenate 'string
                  ,*emacspeak*
-                 "/"
                  "sounds/pan-chimes/on.wav")
     "On icon.")
 
@@ -192,56 +198,6 @@ on the work of T.V. Raman, author of Emacspeak.
 
 #+END_SRC
 
-* Menu
-
-Define parameter variables
-
-#+begin_src lisp
-  (defparameter *app-menu* nil)
-  (defparameter *command-menu* nil)
-#+end_src
-
-Define program menu
-
-#+begin_src lisp
-  (defcommand program-menu () ()
-    (labels ((pick (options)
-               (let ((selection (stumpwm::select-from-menu (current-screen) options "")))
-                 (cond
-                   ((null selection)
-                    (throw 'stumpwm::error "Abort."))
-                   ((stringp (second selection))
-                    (second selection))
-                   (t
-                    (pick (cdr selection)))))))
-      (let ((choice (pick *app-menu*)))
-        (run-shell-command choice))))
-#+end_src
-
-Define command menu
-
-#+begin_src lisp
-  (defcommand command-menu () ()
-      (labels ((pick (options)
-                 (let ((selection (stumpwm::select-from-menu (current-screen) options "")))
-                   (cond
-                     ((null selection)
-                      (throw 'stumpwm::error "Abort."))
-                     ((stringp (second selection))
-                      (second selection))
-                     (t
-                      (pick (cdr selection)))))))
-        (let ((choice (pick *command-menu*)))
-          (run-commands choice))))
-#+end_src
-
-Load menus
-
-#+begin_src lisp
-  (load "~/.stumpwm.d/app.menu")
-  (load "~/.stumpwm.d/command.menu")
-#+end_src
-
 * Commands
 ** send-to-group
 
@@ -282,6 +238,7 @@ Web Browser
                   '(:class "Google-chrome" :instance "google-chrome")))
 
   (define-key *root-map* (kbd "s-g") "chrome")
+
 #+END_SRC
 
 ** Spotify
@@ -298,15 +255,23 @@ Spotify Command
 
 ** gPodder
 
-gPodder
-
 #+begin_src lisp
   (defcommand gpodder ()
       ()
     "Start gPodder"
     (run-or-raise "/usr/bin/gpodder" '(:class "Gpodder" :instance "gpodder")))
+
 #+end_src
 
+** vlc
+
+#+begin_src lisp
+  (defcommand vlc ()
+      ()
+    "Start vlc"
+    (run-or-raise "/usr/bin/vlc" '(:class "Vlc" :instance "vlc")))
+
+#+end_src
 ** Rhythmbox
 
 Rhythmbox
@@ -316,6 +281,37 @@ Rhythmbox
       ()
     "Start Rhythmbox"
     (run-or-raise "/usr/bin/rhythmbox" '(:class "Rhythmbox" :instance "rhythmbox")))
+
+#+end_src
+
+** Slack
+
+#+begin_src lisp
+  (defcommand slack ()
+      ()
+    "Start Slack"
+    (run-or-raise "slack" '(:class "Slack" :instance "slack")))
+
+#+end_src
+
+** Telegram
+
+#+begin_src lisp
+  (defcommand telegram ()
+      ()
+    "Start Telegram"
+    (run-or-raise "telegram-desktop" '(:class "Telegram-desktop" :instance "telegram-desktop")))
+
+#+end_src
+
+** Visual Studio Code
+
+#+begin_src lisp
+  (defcommand code ()
+      ()
+    "Start Visual Studio Code"
+    (run-or-raise "code" '(:class "Code" :instance "code")))
+
 #+end_src
 
 ** Volume Control
@@ -329,6 +325,7 @@ Volume Control
     (run-or-raise "/usr/bin/pavucontrol"
                   '(:class "Pavucontrol" :instance "pavucontrol"
                     :title "Pulse Audio Volumes")))
+
 #+end_src
 
 ** htop
@@ -354,16 +351,14 @@ xload
 (run-or-raise "/usr/bin/xload" '(:class "XLoad" :instance "xload" :title "xload")))
 #+end_src
 
-** Mail
+** xosview
 
-Mail
-
-#+begin_src lisp :tangle no
-  (defcommand my-mail ()
+#+begin_src lisp
+  (defcommand xosview ()
       ()
-    "Open mail client"
-    (run-or-raise "emacsclient -e '(mu4e)'"
-                  '(:title "...mu4e-main*") nil t))
+    "Start XOSView"
+    (run-or-raise "xosview" '(:class "Xosview" :instance "xosview")))
+
 #+end_src
 
 ** Dump Desktop
@@ -566,8 +561,8 @@ rules.
   (define-key *top-map* (kbd "s--") "vsplit")
 
   ;;(define-key *root-map* (kbd "D") "lock-screen")
-  (define-key *root-map* (kbd ".") "program-menu")
-  (define-key *root-map* (kbd ",") "command-menu")
+  (define-key *root-map* (kbd ".") "my-program-menu")
+  (define-key *root-map* (kbd ",") "my-command-menu")
 
   ;; (define-key *root-map* (kbd "s-n") "notify-server-toggle")
   ;; (define-key *top-map* (kbd "s-r") "raise-urgent")
