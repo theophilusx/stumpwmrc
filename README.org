@@ -1,0 +1,32 @@
+* StumpWM Configuration 
+
+This is my personal StumpWM setup. Note that it uses the [[https://github.com/tvraman/emacspeak][Emacspeak]]
+text-to-speech speech server to add speech to StumpWM. This speech enables
+StumpVM so that many operations, such as changing windows, frames or groups,
+provide spoken feedback. Without a working Emacspeak setup, this configuration
+will not work. 
+
+* Org Mode
+
+I use Emacs extensively and take advantage of the powerful org-mode. In
+particular, I use org-mode's /tangle/ facility to embed my code in org files and
+from there, generate the final output file. 
+
+In this case, the code is located in the stumpwmrc.org file. Using
+~org-babel-tangle~, you can generate a ~stumpwmrc.lisp~ file. I then do a
+symbolic link from that file to ~/.stumpwmrc
+
+* StumpWM Modules
+
+I use a number of the stumpwm modules. These are located in
+~$HOME/.stumpwm.d/modules~. What I tend to do is just checkout the contrib
+repository into this directory and use the modules from there. This allows a
+fast update of modules by just doing ~git pull~. 
+
+* StumpWM Sources
+
+I run both SBCL and StumpWM from the sources rather than from my distributions
+packages as I like to be up-to-date. For SBCL, I just install the latest binary
+package from the SBCL project homepage. For stumpwm, I build from the git
+sources. 
+
