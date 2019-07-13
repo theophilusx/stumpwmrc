@@ -67,9 +67,11 @@ To define a notification handler, do something like
 
 ** Menu
 
+Note that the app menu must be set on ~app-menu::*app-menu*~ to allow
+~show-menu~ to see the entries.
+
 #+begin_src lisp
   (load-module "app-menu")
-  (defvar *app-menu* nil)
   (load "~/.stumpwm.d/app.menu")
 
 #+end_src
@@ -191,13 +193,6 @@ on the work of T.V. Raman, author of Emacspeak.
 
 #+end_src
 
-** Startup message
-
-#+BEGIN_SRC lisp
-  (tts-speak "TTS: Ready to talk!")
-
-#+END_SRC
-
 * Commands
 ** send-to-group
 
@@ -213,9 +208,9 @@ on the work of T.V. Raman, author of Emacspeak.
 
 ** Lock Screen
 
-Lock Screen 
+Lock Screen. This was my original effort. Later moved to just using xscreensave.
 
-#+BEGIN_SRC lisp
+#+BEGIN_SRC lisp :tangle no
   (defparameter *my-lock-command*
     "exec ~/bin/xlock ")
 
@@ -225,6 +220,20 @@ Lock Screen
     (eval-command *my-lock-command*))
 
 #+END_SRC
+
+#+begin_src lisp
+  (defcommand screen-saver ()
+    ()
+    "Open screen saver preferences"
+    (run-or-raise "/usr/bin/xscreensaver-command -prefs"
+                  '(:class "XScreensaver-command" :instance "xscreensaver-command")))
+
+  (defcommand lock-screen ()
+    ()
+    "lock the screen"
+    (run-shelll-command "/usr/bin/xscreensaver-command -lock" t))
+
+#+end_src
 
 ** Chrome
 
@@ -553,6 +562,15 @@ rules.
 * Key Bindings
 
 #+BEGIN_SRC lisp
+  ;; get rid of key bindings we don't want
+  (defun remove-unwanted-bindings ()
+    (let ((keys '("C-a" "C-b" "C-c" "C-e" "C-k" "C-l" "C-m" "C-n" "C-p" "C-w"
+                  "s" "S")))
+      (loop for k in keys do
+           (undefine-key *root-map* (kbd k)))))
+
+  (remove-unwanted-bindings)
+
   (define-key *top-map* (kbd "s-Up") "gprev")
   (define-key *top-map* (kbd "s-Down") "gnext")
   (define-key *top-map* (kbd "s-Left") "pull-hidden-previous")
@@ -560,7 +578,7 @@ rules.
   (define-key *top-map* (kbd "s-|") "hsplit")
   (define-key *top-map* (kbd "s--") "vsplit")
 
-  ;;(define-key *root-map* (kbd "D") "lock-screen")
+  (define-key *root-map* (kbd "D") "lock-screen")
   (define-key *root-map* (kbd ".") "show-menu")
 
   ;; (define-key *root-map* (kbd "s-n") "notify-server-toggle")
@@ -574,6 +592,8 @@ rules.
 * Startup
   
 #+begin_src lisp
-    (restore-my-desktop)
+  (restore-my-desktop)
+  (tts-speak "StumpWM Ready!")
+
 #+end_src
 
