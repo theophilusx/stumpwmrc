@@ -561,8 +561,7 @@ rules.
   (define-key *top-map* (kbd "s--") "vsplit")
 
   ;;(define-key *root-map* (kbd "D") "lock-screen")
-  (define-key *root-map* (kbd ".") "my-program-menu")
-  (define-key *root-map* (kbd ",") "my-command-menu")
+  (define-key *root-map* (kbd ".") "show-menu")
 
   ;; (define-key *root-map* (kbd "s-n") "notify-server-toggle")
   ;; (define-key *top-map* (kbd "s-r") "raise-urgent")
