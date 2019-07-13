@@ -1,0 +1,19 @@
+* StumpWM Desktop File
+
+This is the stumpwm.desktop file I use to add a StumpWM menu entry to the list
+of available desktop session in GDM. This file needs to be placed in
+~/usr/share/xsession~. 
+
+#+begin_src conf :tangle stumpwm.desktop
+  [Desktop Entry]
+  Encoding=UTF-8
+  Name=Stumpwm
+  Comment=Tiling, keyboard driven Common Lisp window manager
+  TryExec=/usr/local/bin/stumpwm
+  Exec=/usr/local/bin/stumpwm
+  Type=Application
+
+  [X-Window Manager]
+  SessionManaged=true
+
+#+end_src
