@@ -231,7 +231,7 @@ Lock Screen. This was my original effort. Later moved to just using xscreensave.
   (defcommand lock-screen ()
     ()
     "lock the screen"
-    (run-shelll-command "/usr/bin/xscreensaver-command -lock" t))
+    (run-shell-command "/usr/bin/xscreensaver-command -lock" t))
 
 #+end_src
 
@@ -258,7 +258,7 @@ Spotify Command
   (defcommand spotify ()
       ()
     "Start  or switch to spotify."
-    (run-or-raise "/usr/bin/spotify" '(:class "Spotify" :instance "spotify")))
+    (run-or-raise "/snap/bin/spotify" '(:class "Spotify" :instance "spotify")))
 
 #+end_src
 
@@ -281,6 +281,7 @@ Spotify Command
     (run-or-raise "/usr/bin/vlc" '(:class "Vlc" :instance "vlc")))
 
 #+end_src
+
 ** Rhythmbox
 
 Rhythmbox
