@@ -13,8 +13,8 @@ symbolic link from this file to ~/.stumpwmrc~
   (in-package :stumpwm)
 
   ;; (setf *debug-level* 1)
-  (run-shell-command "cp ~/.stumpwm.d/debug-output.txt ~/.stumpwm.d/debug-output.txt.old")
-  (run-shell-command "cp /dev/null > ~/.stumpwm.d/debug-output.txt")
+  (run-shell-command "cp ~/.stumpwm.d/debug-output.txt ~/.stumpwm.d/debug-output.txt.old" t)
+  (run-shell-command "cp /dev/null ~/.stumpwm.d/debug-output.txt" t)
   (redirect-all-output (data-dir-file "debug-output" "txt"))
 
   (run-shell-command "xsetroot -display $DISPLAY -solid '#002b36'")

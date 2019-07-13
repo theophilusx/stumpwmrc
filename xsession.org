@@ -5,9 +5,16 @@ This is my .xsession file used to run StumpWM
 #+begin_src shell :tangle .xsession
   #!/bin/sh
 
-  echo "Running personal .xsession"
+  cp $HOME/.xsession-errors $HOME/.xsession-errors-old
+  cp /dev/null $HOME/.xsession-errors
+
+  echo "Running personal .xsession on `date`"
 
   export GDK_CORE_DEVICE_EVENTS=1
+
+  xscreensaver -no-splash &
+
+  echo "Starting stumpwm..."
 
   exec /usr/local/bin/stumpwm
 
