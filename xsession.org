@@ -1,0 +1,14 @@
+* Xsession File
+
+This is my .xsession file used to run StumpWM
+
+#+begin_src shell
+  #!/bin/sh
+
+  echo "Running personal .xsession"
+
+  export GDK_CORE_DEVICE_EVENTS=1
+
+  exec /usr/local/bin/stumpwm
+
+#+end_src
