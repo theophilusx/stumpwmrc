@@ -17,3 +17,4 @@ of available desktop session in GDM. This file needs to be placed in
   SessionManaged=true
 
 #+end_src
+

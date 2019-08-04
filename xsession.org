@@ -19,3 +19,4 @@ This is my .xsession file used to run StumpWM
   exec /usr/local/bin/stumpwm
 
 #+end_src
+
