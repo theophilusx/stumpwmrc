@@ -98,7 +98,7 @@ on the work of T.V. Raman, author of Emacspeak.
 
 #+begin_src lisp
   ;;; (setq *deny-raise-request* t)
-  (setf *tts-engine* *tts-outloud*)
+  (setf *tts-engine* *tts-espeak*)
 
 #+end_src
 
@@ -171,10 +171,13 @@ on the work of T.V. Raman, author of Emacspeak.
     (declare (special *tts-speak-messages* *tts-on-icon*
                       ,*tts-off-icon*))
     (setq *tts-speak-messages* (not *tts-speak-messages*))
-    (tts-serve-icon
-     (if *tts-speak-messages*
-         ,*tts-on-icon*
-         ,*tts-off-icon*)))
+    (if *tts-speak-messages*
+        (progn
+          (tts-serve-icon *tts-on-icon*)
+          (tts-speak "Messages on"))
+        (progn
+          (tts-serve-icon *tts-off-icon*)
+          (tts-speak "Messages off"))))
 
   (define-key *root-map* (kbd "t") "tts-toggle-speak-messages")
 
