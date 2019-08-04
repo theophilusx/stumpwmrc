@@ -1,0 +1,36 @@
+;;; -*- Mode: Lisp -*-
+
+(setf app-menu::*app-menu*
+  '(("Audio/Video"
+     ("gPodder" gpodder)
+     ("Rhythmbox" rhythmbox)
+     ("Spotify" spotify)
+     ("VLC" vlc)
+     ("Volume Controls" pavuctl))
+    ("Social"
+     ("Slack" slack)
+     ("Telegram" telegram))
+    ("BookShelf"
+     ("Calibre" "calibre")
+     ("My Kindle Books" "google-chrome https://read.amazon.com/"))
+    ("Internet"
+     ("Chrome" chrome)
+     ("Firefox" "firefox"))
+    ("Progamming"
+     ("Emacs" emacs)
+     ("VS Code" code))
+    ("Office Applications"
+     ("Libre Office" "libreoffice"))
+    ("Terminals"
+     ("X Term" xterm)
+     ("MATE Terminal" "mate-terminal"))
+    ("System Tools"
+     ("Ethereal" "gksu /usr/local/bin/ethereal")
+     ("HTop" htop)
+     ("Network Connections" "nm-connection-editor")
+     ("Screen Saver" screen-saver)
+     ("Synaptic" "gksu /usr/bin/synaptic")
+     ("VirtualBox" "VirtualBox")
+     ("XLoad" xload)
+     ("XOSview" xosview)
+     )))
