@@ -1,0 +1,847 @@
+#+PROPERTY: header-args :tangle "./new-stumpwmrc.lisp"
+
+* Setup
+
+Put config into the stumwm namespace
+
+#+begin_src lisp
+  (in-package :stumpwm)
+  
+#+end_src
+
+** Debugging
+
+#+begin_src lisp
+  (setf *debug-level* 1)
+  (run-shell-command "cp ~/.stumpwm.d/debug-output.txt ~/.stumpwm.d/debug-output.txt.old" t)
+  (run-shell-command "cp /dev/null ~/.stumpwm.d/debug-output.txt" t)
+  (redirect-all-output (data-dir-file "debug-output" "txt"))
+
+#+end_src
+
+** Load stumpwm contrib modules
+
+#+begin_src lisp
+  ;; load Stump contrib modules
+  (mapc #'load-module '("ttf-fonts"
+                        "swm-gaps"
+                        "app-menu"
+                        "notify"))
+
+#+end_src
+
+** Set the stumpwm prefix key
+
+#+begin_src lisp
+  (set-prefix-key (kbd "s-s"))
+  
+#+end_src
+
+** Set desktop background
+
+#+begin_src lisp
+  ;; set desktop background color
+  (setf (xlib:window-background (screen-root (current-screen))) #x002b36)
+  ;; set wallpaper
+  ;; (run-shell-command "feh --bg-fill ~/Pictures/wallpaper.png")
+  
+#+end_src
+
+** Set the fonts
+
+#+begin_src lisp
+  ;; font settings
+  (set-font (list
+             (make-instance 'xft:font
+                            :family "DejaVu Sans Mono"
+                            :subfamily "Bold"
+                            :size 18)
+             (make-instance 'xft:font
+                            :family "FontAwesome"
+                            :subfamily "Regular"
+                            :size 16)))
+
+#+end_src
+
+* Groups
+
+** Base Group
+
+#+begin_src lisp
+  ;; setup groups
+  (grename "Base")
+  ;;(gnewbg ".scratchpad") ; hidden group / scratchpad
+  
+#+end_src
+
+** Web Group
+
+#+begin_src lisp
+  (gnewbg "Web")
+
+  (define-frame-preference "Web"
+      (0 t t :class "Google-chrome" :instance "google-chrome" :role "browser"))
+
+#+end_src
+
+** Project
+
+#+begin_src lisp
+  (gnewbg "Project")
+
+#+end_src
+
+** Social
+
+#+begin_src lisp
+  (gnewbg "Social")
+
+  (define-frame-preference "Social"
+      (0 t nil :class "TelegramDesktop" :instance "Telegram" :title "Telegram")
+    (1 t nil :class "Slack" :instance "slack" :role "browser-window"))
+#+end_src
+
+** Entertainment
+
+#+begin_src lisp
+  (gnewbg "Entertainment")
+
+  (define-frame-preference "Entertainment"
+      (0 t t :class "Spotify" :instance "spotify")
+    (1 t t :class "Gpodder")
+    (2 t t :class "Rhythmbox"))
+
+#+end_src
+
+** System
+
+#+begin_src lisp
+  (gnewbg "System")
+
+  (define-frame-preference "System"
+    (0 t t :class "Pavucontrol")
+    (1 t t :title "htop")
+    (2 t t :class "XLoad" :instance "xload"))
+#+end_src
+
+** Float
+
+#+begin_src lisp
+  (gnewbg-float "Float")
+
+#+end_src
+
+* Colours
+
+#+begin_src lisp
+  (setf *colors*
+        '("#ffffff"        ; ^0 ; White
+          "#131220"        ; ^1 ; Dark Blue
+          "#f72f33"        ; ^2 ; Red
+          "#689d6a"        ; ^3 ; Light Green
+          "#62bfef"        ; ^4 ; Light Blue
+          "#fabd2f"        ; ^5 ; Yellow / Help map keys
+          "#a644bf"        ; ^6 ; Magenta
+          "#cc4a0e"        ; ^7 ; Brown
+          "#56b6c2"))      ; ^8 ; Cyan  
+
+  (defparameter *mode-line-bg-color* (nth 1 *colors*))
+  (defparameter *mode-line-fg-color* (nth 0 *colors*))
+  (defparameter *msg-bg-color* (nth 1 *colors*))
+  (defparameter *msg-fg-color* (nth 0 *colors*))
+  (defparameter *msg-border-color* (nth 2 *colors*))
+
+#+end_src
+
+* General Settings
+
+** Mouse pointer
+
+#+begin_src lisp
+  (run-shell-command "xsetroot -cursor_name left_ptr")
+
+#+end_src
+
+** Message display timeout
+
+#+begin_src lisp
+  (setf *timeout-wait* 20)
+
+#+end_src
+
+** Ignore window hints
+
+#+begin_src lisp
+  (setf *ignore-wm-inc-hints* t)
+
+#+end_src
+
+** Window name format (truncate name after 20 letters)
+
+#+begin_src lisp
+  (setf *window-format* "%m%n%s%20t")
+
+#+end_src
+
+** Input focus 
+
+#+begin_src lisp
+  (setf *mouse-focus-policy* :click)
+
+#+end_src
+
+** Message and input window location
+
+#+begin_src lisp
+  (setf *message-window-gravity* :center)
+  (setf *input-window-gravity* :center)
+
+#+end_src
+
+** Message/input bar colors
+
+#+begin_src lisp
+  (set-bg-color *msg-bg-color*)
+  (set-fg-color *msg-fg-color*)
+  (set-border-color *msg-border-color*)
+
+#+end_src
+
+** Message/input bar settings
+
+#+begin_src lisp
+  (set-msg-border-width 3)
+  (setf *message-window-padding* 6)
+
+#+end_src
+
+** Gaps settings
+
+Inner gaps run along all the 4 borders of a frame. Outer gaps add more padding to the outermost borders
+(touching the screen border).
+
+#+begin_src lisp
+  (setf swm-gaps:*inner-gaps-size* 10)
+  (setf swm-gaps:*outer-gaps-size* 10)
+
+#+end_src
+
+** Startup message
+
+#+begin_src lisp
+  (setf *startup-message* "^5    Stump Window Manager ^0has initialized!
+  Press ^2CSuper+s ? ^0for Help. ^5Never Stop Hacking!^n
+            Powered with ^02 Common Lisp ")
+
+#+end_src
+
+* Swank Setup
+
+#+begin_src lisp
+  (require :swank)
+  (swank-loader:init)
+
+  (defparameter *port-number* 4004
+    "My default port number for Swank")
+
+  (defvar *swank-server-p* nil
+    "Keep track of swank server, turned off by default on startup")
+
+  (defcommand start-swank () ()
+    "Start Swank if it is not already running"
+    (if *swank-server-p*
+        (message "Swank server is already active on Port^5 ~a^n" *port-number*)
+        (progn
+    (swank:create-server :port *port-number*
+             :style swank:*communication-style*
+             :dont-close t)
+    (setf *swank-server-p* t)
+    (message "Swank server is now active on Port^5 ~a^n.
+  Use^4 M-x slime-connect^n in Emacs. 
+  Type^2 (in-package :stumpwm)^n in Slime REPL." *port-number*))))
+
+  (defcommand stop-swank () ()
+    "Stop Swank"
+    (swank:stop-server *port-number*)
+    (setf *swank-server-p* nil)
+    (message "Stopping Swank Server! Closing Port^5 ~a^n." *port-number*))
+
+  (defcommand toggle-swank () ()
+    (if *swank-server-p*
+        (run-commands "stop-swank")
+        (run-commands "start-swank")))
+
+  (define-key *top-map* (kbd "s-i") "toggle-swank")
+
+#+end_src
+
+** Modeline status
+
+#+begin_src lisp
+  (defun get-swank-status ()
+    (if *swank-server-p*
+        (setf *swank-ml-status* (format nil "Swank ^3^f1^f0^n Port:^5 ~a^n " *port-number*))
+        (setf *swank-ml-status* "")))
+
+  (defun ml-fmt-swank-status (ml)
+    (declare (ignore ml))
+    (get-swank-status))
+
+  (add-screen-mode-line-formatter #\S #'ml-fmt-swank-status)
+
+#+end_src
+
+* Commands
+
+** send-to-group
+
+#+begin_src lisp
+  (defcommand send-to-group (group)
+      ((:string "Group Name: "))
+    "Send current frame to specified group"
+    (let ((cmd (format nil "gmove-and-follow ~a" group)))
+      (run-commands cmd)))
+
+  (define-key *root-map* (kbd "C-M-g") "send-to-group")
+#+end_src
+
+** Lock Screen
+
+Lock Screen. This was my original effort. Later moved to just using xscreensave.
+
+#+BEGIN_SRC lisp :tangle no
+  (defparameter *my-lock-command*
+    "exec ~/bin/xlock ")
+
+  (defcommand lock-screen ()
+    ()
+    "Lock my screen."
+    (eval-command *my-lock-command*))
+
+#+END_SRC
+
+#+begin_src lisp
+  (defcommand screen-saver ()
+    ()
+    "Open screen saver preferences"
+    (run-or-raise "/usr/bin/xscreensaver-command -prefs"
+                  '(:class "XScreensaver-command" :instance "xscreensaver-command")))
+
+  (defcommand lock-screen ()
+    ()
+    "lock the screen"
+    (run-shell-command "/usr/bin/xscreensaver-command -lock" t))
+
+#+end_src
+
+** Chrome
+
+Web Browser
+
+#+BEGIN_SRC lisp
+  (defcommand chrome ()
+    ()
+    "Start  or switch to Chrome."
+    (run-or-raise "/usr/bin/google-chrome"
+                  '(:class "Google-chrome" :instance "google-chrome")))
+
+  (define-key *root-map* (kbd "s-g") "chrome")
+
+#+END_SRC
+
+** Firefox
+
+#+begin_src lisp
+  (defcommand firefox () ()
+              "Start Forefox or switch to it, if it is already running"
+              (run-or-raise "firefox" '(:class "Firefox")))
+
+  (define-key *root-map* (kbd "s-b") "firefox")
+
+#+end_src
+
+** Spotify
+
+Spotify Command
+
+#+begin_src lisp
+  (defcommand spotify ()
+      ()
+    "Start  or switch to spotify."
+    (run-or-raise "/snap/bin/spotify" '(:class "Spotify" :instance "spotify")))
+
+#+end_src
+
+** gPodder
+
+#+begin_src lisp
+  (defcommand gpodder ()
+      ()
+    "Start gPodder"
+    (run-or-raise "/usr/bin/gpodder" '(:class "Gpodder" :instance "gpodder")))
+
+#+end_src
+
+** vlc
+
+#+begin_src lisp
+  (defcommand vlc ()
+      ()
+    "Start vlc"
+    (run-or-raise "/usr/bin/vlc" '(:class "Vlc" :instance "vlc")))
+
+#+end_src
+
+** Rhythmbox
+
+Rhythmbox
+
+#+begin_src lisp
+  (defcommand rhythmbox ()
+      ()
+    "Start Rhythmbox"
+    (run-or-raise "/usr/bin/rhythmbox" '(:class "Rhythmbox" :instance "rhythmbox")))
+
+#+end_src
+
+** Slack
+
+#+begin_src lisp
+  (defcommand slack ()
+      ()
+    "Start Slack"
+    (run-or-raise "slack" '(:class "Slack" :instance "slack")))
+
+#+end_src
+
+** Telegram
+
+#+begin_src lisp
+  (defcommand telegram ()
+      ()
+    "Start Telegram"
+    (run-or-raise "telegram-desktop" '(:class "Telegram-desktop" :instance "telegram-desktop")))
+
+#+end_src
+
+** Visual Studio Code
+
+#+begin_src lisp
+  (defcommand code ()
+      ()
+    "Start Visual Studio Code"
+    (run-or-raise "code" '(:class "Code" :instance "code")))
+
+#+end_src
+
+** Volume Control
+
+Volume Control
+
+#+begin_src lisp
+  (defcommand pavuctl ()
+      ()
+    "Start PA volume control"
+    (run-or-raise "/usr/bin/pavucontrol"
+                  '(:class "Pavucontrol" :instance "pavucontrol"
+                    :title "Pulse Audio Volumes")))
+
+#+end_src
+
+** htop
+
+htop command
+
+#+begin_src lisp
+  (defcommand htop ()
+    ()
+    "Run htop inside an exterm"
+    (run-or-raise "/usr/bin/xterm -e htop"
+                  '(:class "Xterm" :instance "xterm" :title "Htop")))
+#+end_src
+
+** xload
+
+xload
+
+#+begin_src lisp
+(defcommand xload ()
+()
+"Run xload"
+(run-or-raise "/usr/bin/xload" '(:class "XLoad" :instance "xload" :title "xload")))
+#+end_src
+
+** xosview
+
+#+begin_src lisp
+  (defcommand xosview ()
+      ()
+    "Start XOSView"
+    (run-or-raise "xosview" '(:class "Xosview" :instance "xosview")))
+
+#+end_src
+
+** Dump Desktop
+
+Dump the desktop for later restore
+
+#+begin_src lisp
+  (defcommand save-desktop ()
+      ()
+    "Save the current desktop to file"
+    (dump-desktop-to-file "~/.stumpwm.d/desktop.dump"))
+
+  (define-key *root-map* (kbd "s-d") "save-desktop")
+
+  (defcommand restore-my-desktop ()
+      ()
+    "Restore frame & window config from file"
+    (restore-from-file "~/.stumpwm.d/desktop.dump"))
+#+end_src
+
+** Safe quit
+
+Safe quit command so that I can bind a key to quit the WM safely i.e. with all
+windows closed. 
+
+#+BEGIN_SRC lisp
+  (defun count-windows ()
+    (let ((win-count 0))
+      (dolist (group (screen-groups (current-screen)))
+            (setq win-count (+ (length (group-windows group)) win-count)))
+      win-count))
+
+  (defcommand safe-quit ()
+    ()
+    "A (slightly) safer quit command"
+    (let ((win-count (count-windows)))
+        (if (= 0 win-count)
+            (run-commands "quit")
+            (message (format nil "You have ~d ~a open"
+                             win-count (if (= win-count 1)
+                                           "window"
+                                           "windows"))))))
+
+  (define-key *top-map* (kbd "s-q") "safe-quit")
+#+END_SRC
+
+** Stumpish
+
+Stumpish support commands. 
+
+#+BEGIN_SRC lisp
+  ;; these commands are mainly intended to be called by external
+  ;; commands through the use of stumpish
+  (defcommand stumpwm-input (prompt) ((:string "prompt: "))
+    "prompts the user for one line of input."
+    (read-one-line (current-screen) prompt))
+
+  (defcommand stumpwm-password (prompt) ((:string "prompt: "))
+    "prompts the user for a password."
+    (read-one-line (current-screen) prompt :password t))
+
+#+END_SRC
+
+** Open terminal
+
+#+begin_src lisp
+  (define-key *root-map* (kbd "Return") "exec mate-terminal")
+  (define-key *root-map* (kbd "c") "exec mate-terminal")
+  (define-key *root-map* (kbd "C-c") "exec mate-terminal")
+
+#+end_src
+
+** Screenshot
+
+#+begin_src lisp
+  (defcommand stump-screenshot () ()
+    (run-shell-command "exec scrot")
+    (sleep 0.5)
+    (message "Screenshot taken!"))
+  
+#+end_src
+
+* Notify
+
+#+begin_example
+  (defun notification-handler (app icon summary body)
+    "Does things with incoming notifications"
+    ...)
+#+end_example
+
+#+begin_src lisp
+  (notify:notify-server-toggle)
+
+#+end_src
+
+* App Menu
+
+Note that the app menu must be set on ~app-menu::*app-menu*~ to allow
+~show-menu~ to see the entries.
+
+#+begin_src lisp
+  (load "~/.stumpwm.d/app.menu")
+
+#+end_src
+
+* Key Bindings
+
+** Clean out unwanted bindings
+
+#+begin_src lisp
+  (defun remove-unwanted-bindings ()
+    (let ((keys '("C-a" "C-b" "C-c" "C-e" "C-k" "C-l" "C-m" "C-n" "C-p" "C-w"
+                  "s" "S")))
+      (loop for k in keys do
+        (undefine-key *root-map* (kbd k)))))
+
+  (remove-unwanted-bindings)
+
+#+end_src
+
+** Cycle through groups s-Down and s-Up
+
+#+begin_src lisp
+  (define-key *top-map* (kbd "s-Down") "gnext")
+  (define-key *top-map* (kbd "s-Up") "gprev")
+
+#+end_src
+ 
+** Cycle through windows s-Right and s-Left
+
+#+begin_src lisp
+  (define-key *top-map* (kbd "s-Right") "pull-hidden-next")
+  (define-key *top-map* (kbd "s-Left") "pull-hidden-previous")
+
+#+end_src
+
+** Move window focus
+
+#+begin_src lisp
+  (define-key *top-map* (kbd "s-h") "move-focus left")
+  (define-key *top-map* (kbd "s-l") "move-focus right")
+  (define-key *top-map* (kbd "s-j") "move-focus down")
+  (define-key *top-map* (kbd "s-k") "move-focus up")
+
+#+end_src
+
+** Move windows
+
+#+begin_src lisp
+  (define-key *top-map* (kbd "s-H") "move-window left")
+  (define-key *top-map* (kbd "s-L") "move-window right")
+  (define-key *top-map* (kbd "s-J") "move-window down")
+  (define-key *top-map* (kbd "s-K") "move-window up")
+
+#+end_src
+
+** Send window to next/previous groups s-s s-Right and s-s s-Left
+
+#+begin_src lisp
+  (define-key *root-map* (kbd "s-Right") "gnext-with-window")
+  (define-key *root-map* (kbd "s-Left") "gprev-with-window")
+
+  (define-key *top-map* (kbd "s-SPC") "fnext")
+
+#+end_src
+
+** Toggle useless gaps keybinding s-u
+
+#+begin_src lisp
+  (define-key *top-map* (kbd "s-u") "toggle-gaps")
+
+#+end_src
+
+** Hard restart keybinding s-r
+
+#+begin_src lisp
+  (define-key *top-map* (kbd "s-r") "restart-hard")
+
+#+end_src
+
+** Take screenshot Print
+
+#+begin_src lisp
+  (define-key *top-map* (kbd "Print") "stump-screenshot")
+
+#+end_src
+
+** Split frame s-| and s--
+
+#+begin_src lisp
+  (define-key *top-map* (kbd "s-|") "hsplit")
+  (define-key *top-map* (kbd "s--") "vsplit")
+
+#+end_src
+
+** Lock Screen s-s D
+
+#+begin_src lisp
+  (define-key *root-map* (kbd "D") "lock-screen")
+
+#+end_src
+
+** Display menu s-s .
+
+#+begin_src lisp
+  (define-key *root-map* (kbd ".") "show-menu")
+
+#+end_src
+
+* Modeline Settings
+
+#+begin_src lisp
+  (setf *mode-line-timeout* 1)
+  (setf *mode-line-border-width* 0)
+
+  (setf *mode-line-background-color* *mode-line-bg-color*)
+  (setf *mode-line-border-color* *mode-line-bg-color*)
+  (setf *mode-line-foreground-color* *mode-line-fg-color*)
+
+  (setf *time-modeline-string* "^2^f1^f0^n %H:%M")
+
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+  (setf *screen-mode-line-format*
+        (list "^5[%n]^n "       ; groups
+              "%v"              ; windows
+              "^>"              ; right align
+              "%S"              ; swank status
+              "%d"))            ; time/date
+
+  ;; turn on the mode line
+  (if (not (head-mode-line (current-head)))
+      (toggle-mode-line (current-screen) (current-head)))
+
+#+end_src
+
+* Speech Support
+
+I use emacspeak to make stumpwm a talking desktop window manager. This is based
+on the work of T.V. Raman, author of Emacspeak. 
+
+** Load TTS lib
+
+#+begin_src lisp
+  (defvar *emacspeak-dir* "/home/tim/git/emacspeak/trunk/"
+    "Root directory of Emacspeak installation.")
+
+  (load
+   (concatenate 'string
+                ,*emacspeak-dir*
+                "stumpwm/tts.lisp"))
+
+  (defvar *tts-espeak* (concatenate 'string *emacspeak-dir* "servers/espeak"))
+#+end_src
+
+** Setup
+
+#+begin_src lisp
+  ;;; (setq *deny-raise-request* t)
+  (setf *tts-engine* *tts-espeak*)
+
+#+end_src
+
+** TTS Icons
+
+#+begin_src lisp
+  (defvar *tts-window-icon*
+    (concatenate 'string
+                 ,*emacspeak*
+                 "sounds/pan-chimes/window-resize.wav")
+    "Window change icon.")
+
+  (defvar *tts-off-icon*
+    (concatenate 'string
+                 ,*emacspeak*
+                 "sounds/pan-chimes/off.wav")
+    "Off icon.")
+
+  (defvar *tts-on-icon*
+    (concatenate 'string
+                 ,*emacspeak*
+                 "sounds/pan-chimes/on.wav")
+    "On icon.")
+
+  (defvar *tts-speak-messages* nil
+    "Switch messages on and off.")
+
+#+end_src
+
+** speak-window-change
+
+#+begin_src lisp
+  (defun speak-window-change (new old)
+    "Speak current window  information."
+    (declare (special *tts-window-icon*))
+    (when new
+      (tts-serve-icon *tts-window-icon*)
+      (tts-speak (window-name new))))
+
+  (add-hook *focus-window-hook* 'speak-window-change)
+
+#+end_src
+
+** speak-this-window
+
+#+begin_src lisp
+  (defun speak-this-window (window)
+    "Speak this window  information."
+    (tts-speak (window-name window)))
+
+  (add-hook *new-window-hook* 'speak-this-window)
+
+#+end_src
+
+** speak-current-window
+
+#+begin_src lisp
+  (defun speak-current-window ()
+    "Speak current window  information."
+    (tts-speak (window-name (current-window))))
+
+#+end_src
+
+** tts-toggle-speak-message
+
+#+begin_src lisp
+  (defcommand  tts-toggle-speak-messages ()
+    ()
+    "Toggle state of speak messages switch."
+    (declare (special *tts-speak-messages* *tts-on-icon*
+                      ,*tts-off-icon*))
+    (setq *tts-speak-messages* (not *tts-speak-messages*))
+    (if *tts-speak-messages*
+        (progn
+          (tts-serve-icon *tts-on-icon*)
+          (tts-speak "Messages on"))
+        (progn
+          (tts-serve-icon *tts-off-icon*)
+          (tts-speak "Messages off"))))
+
+  (define-key *root-map* (kbd "t") "tts-toggle-speak-messages")
+
+#+end_src
+
+** speak-message
+
+#+begin_src lisp
+  (defun speak-messages (&rest messages)
+    "Speak messages, a list of lines."
+    (declare (special *tts-speak-messages*))
+    (when *tts-speak-messages*
+      (tts-speak-list (mapcar #'stumpwm::uncolorify messages))))
+
+  (add-hook *message-hook* 'speak-messages)
+
+#+end_src
+
+* Overrides
+
+#+begin_src lisp
+  ;; This file when loaded overrides some Stump behavior
+  ;; which are personal preferences I prefer to the defaults
+  (load "~/.stumpwm.d/overrides.lisp")
+
+#+end_src
+
