@@ -42,11 +42,21 @@ so beware.
   ;; (set-font "-*-fixed-medium-r-*-*-*-180-100-100-*-*-iso8859-*")
   (load-module "ttf-fonts")
   (xft:cache-fonts)
-  (set-font (make-instance 'xft:font
-                           :family "DejaVu Sans Mono"
-                           :subfamily "Book"
-                           :size 22
-                           :antialiased t))
+  ;; (set-font (make-instance 'xft:font
+  ;;                          :family "DejaVu Sans Mono"
+  ;;                          :subfamily "Book"
+  ;;                          :size 22
+  ;;                          :antialiased t))
+
+  (set-font (list
+             (make-instance 'xft:font
+                            :family "DejaVu Sans Mono"
+                            :subfamily "Bold"
+                            :size 18)
+             (make-instance 'xft:font
+                            :family "FontAwesome"
+                            :subfamily "Regular"
+                            :size 15)))
 
 #+END_SRC
 
@@ -92,6 +102,7 @@ on the work of T.V. Raman, author of Emacspeak.
                 ,*emacspeak-dir*
                 "stumpwm/tts.lisp"))
 
+  (defvar *tts-espeak* (concatenate 'string *emacspeak-dir* "servers/espeak"))
 #+end_src
 
 ** Setup
@@ -441,7 +452,7 @@ Stumpish support commands.
 Set timeout. I like a longer timeout to give me a chance to see it
 
 #+begin_src lisp
-  (setf *timeout-wait* 15)
+  (setf *timeout-wait* 20)
 #+end_src
 
 ** Colours
