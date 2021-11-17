@@ -41,10 +41,9 @@ Put config into the stumwm namespace
 
 #+begin_src lisp
   ;; set desktop background color
-  (setf (xlib:window-background (screen-root (current-screen))) #x002b36)
-  ;; set wallpaper
-  ;; (run-shell-command "feh --bg-fill ~/Pictures/wallpaper.png")
-  
+  (run-shell-command "xsetroot -display $DISPLAY -solid '#132014'")
+  (run-shell-command "feh --bg-fill ~/git/stumpwm-config-org/wp2486457-darkness-hd-wallpaper.jpg")
+
 #+end_src
 
 ** Set the fonts
