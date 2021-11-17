@@ -55,11 +55,11 @@ Put config into the stumwm namespace
              (make-instance 'xft:font
                             :family "DejaVu Sans Mono"
                             :subfamily "Bold"
-                            :size 18)
+                            :size 16)
              (make-instance 'xft:font
                             :family "FontAwesome"
                             :subfamily "Regular"
-                            :size 16)))
+                            :size 14)))
 
 #+end_src
 
