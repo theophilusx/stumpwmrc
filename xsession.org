@@ -11,14 +11,18 @@ This is my .xsession file used to run StumpWM
   echo "Running personal .xsession on `date`"
 
   . ${HOME}/.profile
+
   eval  `ssh-agent -s`
 
   export GDK_CORE_DEVICE_EVENTS=1
   export LISP=sbcl
+  export GTK_THEME=Yaru-MATE-dark
 
-  xscreensaver -no-splash &
+  compton &
 
-  espeak "Starting stumpwm..."
+  # xscreensaver -no-splash &
+
+  espeak-ng "Starting stumpwm..."
 
   exec /usr/local/bin/stumpwm
 
