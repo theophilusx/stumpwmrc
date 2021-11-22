@@ -584,8 +584,8 @@ Note that the app menu must be set on ~app-menu::*app-menu*~ to allow
 #+end_src
 
 * Key Bindings
-
-** Clean out unwanted bindings
+** Root map bindings (s-s prefix)
+*** Clean out unwanted bindings
 
 #+begin_src lisp
   (defun remove-unwanted-bindings ()
@@ -598,7 +598,30 @@ Note that the app menu must be set on ~app-menu::*app-menu*~ to allow
 
 #+end_src
 
-** Cycle through groups s-Down and s-Up
+*** Send window to next/previous group
+
+#+begin_src lisp
+  (define-key *root-map* (kbd "s-Right") "gnext-with-window")
+  (define-key *root-map* (kbd "s-Left") "gprev-with-window")
+  
+#+end_src
+
+*** Lock Screen s-s D
+
+#+begin_src lisp
+  (define-key *root-map* (kbd "D") "lock-screen")
+
+#+end_src
+
+*** Display menu s-s .
+
+#+begin_src lisp
+  (define-key *root-map* (kbd ".") "show-menu")
+
+#+end_src
+
+** Top map bindings (Global Bindings)
+*** Cycle through groups s-Down and s-Up
 
 #+begin_src lisp
   (define-key *top-map* (kbd "s-Down") "gnext")
@@ -606,7 +629,14 @@ Note that the app menu must be set on ~app-menu::*app-menu*~ to allow
 
 #+end_src
  
-** Cycle through windows s-Right and s-Left
+*** Cycle to next frame
+
+#+begin_src lisp
+  (define-key *top-map* (kbd "s-SPC") "fnext")
+
+#+end_src
+
+*** Cycle through windows s-Right and s-Left
 
 #+begin_src lisp
   (define-key *top-map* (kbd "s-Right") "pull-hidden-next")
@@ -614,7 +644,7 @@ Note that the app menu must be set on ~app-menu::*app-menu*~ to allow
 
 #+end_src
 
-** Move window focus
+*** Move window focus
 
 #+begin_src lisp
   (define-key *top-map* (kbd "s-h") "move-focus left")
@@ -624,7 +654,7 @@ Note that the app menu must be set on ~app-menu::*app-menu*~ to allow
 
 #+end_src
 
-** Move windows
+*** Move windows
 
 #+begin_src lisp
   (define-key *top-map* (kbd "s-H") "move-window left")
@@ -634,56 +664,32 @@ Note that the app menu must be set on ~app-menu::*app-menu*~ to allow
 
 #+end_src
 
-** Send window to next/previous groups s-s s-Right and s-s s-Left
-
-#+begin_src lisp
-  (define-key *root-map* (kbd "s-Right") "gnext-with-window")
-  (define-key *root-map* (kbd "s-Left") "gprev-with-window")
-
-  (define-key *top-map* (kbd "s-SPC") "fnext")
-
-#+end_src
-
-** Toggle useless gaps keybinding s-u
+*** Toggle useless gaps keybinding s-u
 
 #+begin_src lisp
   (define-key *top-map* (kbd "s-u") "toggle-gaps")
 
 #+end_src
 
-** Hard restart keybinding s-r
+*** Hard restart keybinding s-r
 
 #+begin_src lisp
   (define-key *top-map* (kbd "s-r") "restart-hard")
 
 #+end_src
 
-** Take screenshot Print
+*** Take screenshot Print
 
 #+begin_src lisp
   (define-key *top-map* (kbd "Print") "stump-screenshot")
 
 #+end_src
 
-** Split frame s-| and s--
+*** Split frame s-| and s--
 
 #+begin_src lisp
   (define-key *top-map* (kbd "s-|") "hsplit")
   (define-key *top-map* (kbd "s--") "vsplit")
-
-#+end_src
-
-** Lock Screen s-s D
-
-#+begin_src lisp
-  (define-key *root-map* (kbd "D") "lock-screen")
-
-#+end_src
-
-** Display menu s-s .
-
-#+begin_src lisp
-  (define-key *root-map* (kbd ".") "show-menu")
 
 #+end_src
 
