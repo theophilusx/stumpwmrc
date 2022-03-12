@@ -3,30 +3,47 @@
 This is my .xsession file used to run StumpWM
 
 #+begin_src shell :tangle .xsession
-  #!/bin/sh
+  #! /bin/bash
 
-  cp $HOME/.xsession-errors $HOME/.xsession-errors-old
-  cp /dev/null $HOME/.xsession-errors
+  #cp $HOME/.xsession-errors $HOME/.xsession-errors-old
+  #cp /dev/null $HOME/.xsession-errors
 
   echo "Running personal .xsession on `date`"
 
-  . ${HOME}/.profile
-
-  eval  `ssh-agent -s`
+  #. ${HOME}/.profile
 
   export GDK_CORE_DEVICE_EVENTS=1
   export LISP=sbcl
   export GTK_THEME=Yaru-MATE-dark
 
-  compton &
+  eval `gnome-keyring-daemon --start --components=gpg,pkcs11,secrets,ssh`
+  export GNOME_KEYRING_CONTROL
+  export SSH_AUTH_SOCK
+  export GPG_AGENT_INFO
+  export GNOME_KEYRING_PID
 
-  # xscreensaver -no-splash &
+  #xmodmap ~/.xmodmap
+  xrdb -merge ~/.Xresources
+  #xsetroot -cursor_name left_ptr
+  #xset s off
+  #xset b off
 
-  espeak-ng "Starting stumpwm..."
+  compton 
 
-  #exec /usr/local/bin/stumpwm
-
-  exec dbus-launch --exit-with-session /usr/local/bin/stumpwm
-
+  exec ssh-agent /usr/local/bin/stumpwm
+  #exec dbus-launch --exit-with-session ssh-agent /usr/local/bin/stumpwm
 #+end_src
+  
+#+begin_src shell :tangle no
+  #!/bin/sh
 
+  #/usr/lib/x86_64-linux-gnu/polkit-mate/polkit-mate-authentication-agent-1
+
+  /usr/bin/gnome-keyring-daemon --start --components=pkcs11
+  /usr/bin/gnome-keyring-daemon --start --components=secrets
+  /usr/bin/snap userd --autostart
+
+  eval  `ssh-agent -s`
+
+  exec /usr/local/bin/stumpwm
+#+end_src

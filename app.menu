@@ -15,12 +15,16 @@
      ("My Kindle Books" "google-chrome https://read.amazon.com/"))
     ("Internet"
      ("Chrome" chrome)
-     ("Firefox" "firefox"))
-    ("Progamming"
+     ("Firefox" "firefox")
+     ("Discord" discord)
+     ("Zoom" zoom))
+    ("Programming"
      ("Emacs" emacs)
      ("VS Code" code))
     ("Office Applications"
      ("Libre Office" "libreoffice"))
+    ("Games"
+     ("Steam" steam))
     ("Terminals"
      ("X Term" xterm)
      ("MATE Terminal" "mate-terminal"))
@@ -33,4 +37,5 @@
      ("VirtualBox" "VirtualBox")
      ("XLoad" xload)
      ("XOSview" xosview)
+     ("VirtualBox" "virtualbox")
      )))
